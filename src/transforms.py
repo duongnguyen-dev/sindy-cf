@@ -13,26 +13,26 @@ class TransformCuttingForceToToolRotatingCoordinate(object):
     def __call__(self, sample):
         '''
         sample should be a list with the following elements: 
-        [time_step, channel_1, channel_2, channel_3, channel_4, channel_5, channel_6, channel_7, channel_8, ss, ap, ft, ad]
+        [time_step, channel_1, channel_2, channel_3, channel_4, channel_5, channel_6, channel_7, channel_8, ss, ap, ft, ad, kt, kn, ka]
         '''
-        time_step, channels = sample["input"][0], sample["input"][1:8]
-        vc, ap, ft, ad = sample["input"][8], sample["input"][9], sample["input"][10], sample["input"][11]
+        time_step, channels = sample["input"][0], sample["input"][1:9]
+        vc, ap, ft, ad, kt, kn, ka = sample["input"][9], sample["input"][10], sample["input"][11], sample["input"][12], sample["input"][13], sample["input"][14], sample["input"][15]
 
         Fx, Fy, Fz = compute_cutting_foce(channels)
         Ft, Fn, Fa = convert_force_to_rotating_tool_frame(Fx, Fy, Fz, time_step, self.rpm)
 
         return {
-            "input": np.array([Ft, Fn, Fa, vc, ap, ft, ad], dtype=np.float32),
+            "input": np.array([Ft, Fn, Fa, vc, ap, ft, ad, kt, kn, ka], dtype=np.float32),
             "output": None
         }
 
 class CreateAugmentedLib(object):
     def __call__(self, sample):
-        vc, ap, ft, ad = sample["input"][3], sample["input"][4], sample["input"][5], sample["input"][6]
-        ln_vc, ln_ap, ln_ft, ln_ad = np.log(vc), np.log(ap), np.log(ft), np.log(ad)
+        vc, ap, ft, ad, kt, kn, ka = sample["input"][3], sample["input"][4], sample["input"][5], sample["input"][6], sample["input"][7], sample["input"][8], sample["input"][9]
+        ln_vc, ln_ap, ln_ft, ln_ad, ln_kt, ln_kn, ln_ka = np.log(vc), np.log(ap), np.log(ft), np.log(ad), np.log(kt), np.log(kn), np.log(ka)
 
         return {
-            "input": np.array([1, ln_vc, ln_ap, ln_ft, ln_ad], dtype=np.float32),
+            "input": np.array([ln_kt, ln_kn, ln_ka, ln_vc, ln_ap, ln_ft, ln_ad], dtype=np.float32),
             "output": sample["output"]
         }
     
@@ -60,13 +60,19 @@ class ToTensor(object):
             "input": torch.from_numpy(input),
             "output": torch.from_numpy(output)
         }
-    
-def get_transforms():
-    return transforms.Compose([
-        TransformCuttingForceToToolRotatingCoordinate(),
-        TransformTarget(),
-        # CreateAugmentedLib(),
-        ToTensor()
-    ])
 
- 
+def get_transforms(mode):
+    if mode == "train":
+        return transforms.Compose([
+            TransformCuttingForceToToolRotatingCoordinate(),
+            TransformTarget(),
+            CreateAugmentedLib(),
+            ToTensor()
+        ])
+
+    elif mode == "test":
+        return transforms.Compose([
+            TransformCuttingForceToToolRotatingCoordinate(),
+            CreateAugmentedLib(),
+            ToTensor()
+        ])

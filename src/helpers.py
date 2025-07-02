@@ -31,4 +31,4 @@ def compute_smoothed_diff(Ft, Fn, Fa):
     '''
     cutting_force: this parameter should be a list with 3 elements Fx, Fy, Fz
     '''
-    return [1, 1, 1] # Just dum return for testing
+    return 1, 1, 1 # Just dum return for testing

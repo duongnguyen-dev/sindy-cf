@@ -16,7 +16,7 @@ class CuttingForceDataset(Dataset):
             "input":self.cutting_force_ds.iloc[:, :].values[idx],
             "output": None
         }
-        print(self.transform(sample))
+
         if self.transform:
             sample = self.transform(sample)
 

@@ -65,6 +65,8 @@ def get_transforms():
     return transforms.Compose([
         TransformCuttingForceToToolRotatingCoordinate(),
         TransformTarget(),
-        CreateAugmentedLib(),
+        # CreateAugmentedLib(),
         ToTensor()
     ])
+
+ 

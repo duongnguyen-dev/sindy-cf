@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy.signal import savgol_filter
 def compute_cutting_foce(channels: list):
     Fx = channels[0] + channels[1]
     Fy = channels[2] + channels[3]
@@ -25,10 +25,27 @@ def convert_force_to_rotating_tool_frame(Fx, Fy, Fz, time_step, rpm=2000):
 
     return Ft, Fn, Fa
 
-# TODO: Compute partial derivative of the input Fx, Fy, Fz 
+# TODO: Compute partial derivative of the input Ft, Fn, Fa 
 # Desired output: [dFx, dFy, dFz]
-def compute_smoothed_diff(Ft, Fn, Fa): 
+def compute_smoothed_diff(Ft, Fn, Fa, time_step, window_length=5,polyorder=3):
+
     '''
-    cutting_force: this parameter should be a list with 3 elements Fx, Fy, Fz
+    compute smoothed derivatives of Ft,Fn,Fa using Savitzky-Golay filter.
+    Step1: smooth data by Savitzky-golay filter
+    Step2: initialize derivative
+    Step3: compute central difference
+    Step4: compute derivative at boundary points
     '''
-    return [1, 1, 1] # Just dum return for testing
+    df=[]
+    for f in [Ft,Fn,Fa]:
+        smoothed_data=savgol_filter(f,window_length=window_length, polyorder=polyorder)
+        f_diff=np.zeros_like(f)
+
+        for i in range(1,len(f_diff)-2):
+            f_diff[i]=(smoothed_data[i+1]-smoothed_data[i-1])/(2.0*(time_step[i-1]-time_step[i+1]))
+            
+        f_diff[0]=(smoothed_data[1]-smoothed_data[0])/(time_step[0]-time_step[1])
+        f_diff[-1]=(smoothed_data[-1]-smoothed_data[-2])/(time_step[-2]-time_step[-1])
+
+        df.append(f_diff)
+    return df

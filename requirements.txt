@@ -1,6 +1,7 @@
 torch==2.7.1
 torchvision==0.22.1
 torcheval==0.0.7
+scipy==1.15.3
 wandb
 pytest
 loguru==0.7.3

@@ -55,7 +55,8 @@ def train(train_ds, val_ds, path):
 
                 # Forward pass
                 y_pred = model(X_val)
-
+                y_pred = torch.exp(y_pred)
+                
                 # Calculate loss function 
                 l1_norm = sum(p.abs().sum() for name, p in model.named_parameters() if 'weight' in name)
                 loss = loss_fn(y_pred, y_val) + l1_lambda * l1_norm

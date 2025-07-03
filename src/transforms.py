@@ -22,13 +22,13 @@ class TransformCuttingForceToToolRotatingCoordinate(object):
         Ft, Fn, Fa = convert_force_to_rotating_tool_frame(Fx, Fy, Fz, time_step, self.rpm)
 
         return {
-            "input": np.array([Ft, Fn, Fa, vc, ap, ft, ad, kt, kn, ka], dtype=np.float32),
+            "input": np.array([time_step, Ft, Fn, Fa, vc, ap, ft, ad, kt, kn, ka], dtype=np.float32),
             "output": None
         }
 
 class CreateAugmentedLib(object):
     def __call__(self, sample):
-        vc, ap, ft, ad, kt, kn, ka = sample["input"][3], sample["input"][4], sample["input"][5], sample["input"][6], sample["input"][7], sample["input"][8], sample["input"][9]
+        vc, ap, ft, ad, kt, kn, ka = sample["input"][4], sample["input"][5], sample["input"][6], sample["input"][7], sample["input"][8], sample["input"][9], sample["input"][10]
         ln_vc, ln_ap, ln_ft, ln_ad, ln_kt, ln_kn, ln_ka = np.log(vc), np.log(ap), np.log(ft), np.log(ad), np.log(kt), np.log(kn), np.log(ka)
 
         return {
@@ -41,9 +41,11 @@ class TransformTarget(object):
     This class will help to get the output by computing differential from the Ft, Fr, Fa
     '''
     def __call__(self, sample):
-        Ft, Fn, Fa = sample["input"][:3]
+        time_step, Ft, Fn, Fa = sample["input"][:4]
+        window_length = 5
+        polyorder = 3
 
-        dFt, dFn, dFa = compute_smoothed_diff(Ft, Fn, Fa)
+        dFt, dFn, dFa = compute_smoothed_diff(Ft, Fn, Fa, time_step, window_length, polyorder)
 
         return {
             "input": sample["input"],

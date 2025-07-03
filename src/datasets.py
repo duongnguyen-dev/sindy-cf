@@ -1,5 +1,5 @@
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from transforms import get_transforms
 
 class CuttingForceDataset(Dataset):
